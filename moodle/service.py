@@ -16,3 +16,6 @@ class MoodleService:
 
     async def create_user(self, username: str, firstname: str, lastname: str, email: str):
         return await self.moodle.create_user(username, firstname, lastname, email)
+
+    async def enrol_user(self, userid: int, courseid: int, roleid: int = 5):
+        return await self.moodle.enrol_user(userid, courseid, roleid)

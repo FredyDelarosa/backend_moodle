@@ -38,6 +38,16 @@ class MockMoodleClient:
                 return {"users": [u]}
         return {"users": []}
 
+    async def get_user_courses(self, userid: int):
+        await asyncio.sleep(self.delay)
+        courses = []
+        for cid, enrollments in self._enrolments.items():
+            if userid in enrollments:
+                for c in self._courses.values():
+                    if c["id"] == cid:
+                        courses.append(c)
+        return courses
+
     async def create_user(self, username: str, firstname: str, lastname: str, email: str, password: str = "Password123!"):
         await asyncio.sleep(self.delay)
         key = email or username
@@ -68,7 +78,12 @@ class MoodleHttpClient:
         payload.update(params)
         r = await self._client.post(self.endpoint, data=payload)
         r.raise_for_status()
-        return r.json()
+        data = r.json()
+        # Detectar errores de Moodle en la respuesta
+        if isinstance(data, dict) and "exception" in data:
+            error_msg = data.get("message", data.get("exception", "Unknown error"))
+            raise Exception(f"Moodle error: {error_msg}")
+        return data
 
     async def get_site_info(self):
         return await self._post("core_webservice_get_site_info", {})
@@ -101,6 +116,9 @@ class MoodleHttpClient:
         }
         return await self._post("enrol_manual_enrol_users", params)
 
+    async def get_user_courses(self, userid: int):
+        return await self._post("core_enrol_get_users_courses", {"userid": userid})
+
     async def close(self):
         await self._client.aclose()
 
@@ -108,3 +126,4 @@ def get_moodle_client():
     if settings.moodle_token:
         return MoodleHttpClient(settings.moodle_url, settings.moodle_token)
     return MockMoodleClient()
+
