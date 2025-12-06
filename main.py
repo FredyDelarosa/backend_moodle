@@ -4,11 +4,13 @@ from db.database import database, engine, metadata
 from routes import routes_academy, routes_sync
 from core.config import settings
 from moodle.client import get_moodle_client
+from moodle.routes_moodle import router as moodle_router
 
 app = FastAPI(title="Plataforma API - FastAPI")
 
 app.include_router(routes_academy.router)
 app.include_router(routes_sync.router)
+app.include_router(moodle_router)
 
 @app.on_event("startup")
 async def startup():
