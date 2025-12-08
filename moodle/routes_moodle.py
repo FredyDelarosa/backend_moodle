@@ -15,6 +15,14 @@ class CreateCourseRequest(BaseModel):
     fullname: str
     shortname: str
 
+class DeleteCourseRequest(BaseModel):
+    id: int
+
+@router.get("/courses")
+async def list_courses():
+    moodle = get_moodle_client()
+    service = MoodleService(moodle)
+    return await service.get_courses()
 
 @router.get("/course/exists/{shortname}")
 async def course_exists(shortname: str):
@@ -43,6 +51,11 @@ async def create_course(request: CreateCourseRequest):
     service = MoodleService(moodle)
     return await service.create_course(request.fullname, request.shortname)
 
+@router.delete("/course")
+async def delete_course(req: DeleteCourseRequest):
+    moodle = get_moodle_client()
+    params = {"courseids[0]": req.id}
+    return await moodle._post("core_course_delete_courses", params)
 
 @router.post("/user")
 async def create_user(request: CreateUserRequest):

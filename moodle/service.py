@@ -2,6 +2,9 @@ class MoodleService:
     def __init__(self, moodle_client):
         self.moodle = moodle_client
 
+    async def get_courses(self):
+        return await self.moodle.get_courses() # aca llama al client
+    
     async def course_exists(self, shortname: str):
         return await self.moodle.get_course_by_shortname(shortname)
 

@@ -15,6 +15,10 @@ class MockMoodleClient:
     async def get_site_info(self):
         await asyncio.sleep(self.delay)
         return {"sitename": "Moodle Mock", "username": "mock"}
+    
+    async def get_courses(self):
+        await asyncio.sleep(self.delay)
+        return list(self._courses.values())
 
     async def get_course_by_shortname(self, shortname: str):
         await asyncio.sleep(self.delay)
@@ -64,6 +68,30 @@ class MockMoodleClient:
             self._enrolments[courseid] = set()
         self._enrolments[courseid].add(userid)
         return {"status": "ok"}
+    
+    async def update_course(self, courseid: int, fullname: str, shortname: str):
+        await asyncio.sleep(self.delay)
+        for key, c in list(self._courses.items()):
+            if c["id"] == courseid:
+                c["fullname"] = fullname
+                c["shortname"] = shortname
+                if key != shortname:
+                    self._courses.pop(key)
+                    self._courses[shortname] = c
+                return {"status": "ok"}
+        return {"status": "not_found"}
+    
+    async def delete_course(self, courseid: int):
+        await asyncio.sleep(self.delay)
+        for key, c in list(self._courses.items()):
+            if c["id"] == courseid:
+                self._courses.pop(key)
+                if courseid in self._enrolments:
+                    self._enrolments.pop(courseid)
+                return {"status": "ok"}
+        return {"status": "not_found"}
+
+
 
 class MoodleHttpClient:
     def __init__(self, base_url: str, token: str, timeout: int = 30):
@@ -85,6 +113,13 @@ class MoodleHttpClient:
             raise Exception(f"Moodle error: {error_msg}")
         return data
 
+    async def get_courses(self):
+        return await self._post("core_course_get_courses_by_field", {
+    "field": "shortname",
+    "value": "CONC-A"
+})
+
+    
     async def get_site_info(self):
         return await self._post("core_webservice_get_site_info", {})
 
@@ -121,6 +156,19 @@ class MoodleHttpClient:
 
     async def close(self):
         await self._client.aclose()
+
+    async def update_course(self, courseid: int, fullname: str, shortname: str):
+        params = {
+            "courses[0][id]": courseid,
+            "courses[0][fullname]": fullname,
+            "courses[0][shortname]": shortname
+        }
+        return await self._post("core_course_update_courses", params)
+    
+    async def delete_course(self, courseid: int):
+        params = { "courseids[0]": courseid }
+        return await self._post("core_course_delete_courses", params)
+
 
 def get_moodle_client():
     if settings.moodle_token:

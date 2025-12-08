@@ -1,10 +1,17 @@
 from pydantic import BaseModel
 
-class ProgramaCreate(BaseModel):
+class ProgramaBase(BaseModel):
     nombre: str
     numero_cuatrimestres: int
 
-class ProgramaOut(BaseModel):
+class ProgramaCreate(ProgramaBase):
+    pass
+
+class ProgramaUpdate(ProgramaBase):
+    pass
+
+class ProgramaOut(ProgramaBase):
     id: int
-    nombre: str
-    numero_cuatrimestres: int
+
+    class Config:
+        from_attributes = True

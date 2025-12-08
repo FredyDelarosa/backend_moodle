@@ -1,7 +1,10 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import Optional
 
 class DocenteCreate(BaseModel):
     nombre: str
     correo: Optional[EmailStr] = None
-    asignatura_ids: Optional[List[int]] = []
+
+class DocenteAsignaturaCreate(BaseModel):
+    docente_id: int
+    asignatura_id: int

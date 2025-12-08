@@ -18,15 +18,33 @@ MOODLE_DB_CONFIG = {
 }
 
 # Capacidades que necesita el rol API Integration
+# Capacidades que necesita el rol API Integration
 REQUIRED_CAPABILITIES = [
     ("webservice/rest:use", 1),
+
+    # Cursos: lectura + búsqueda + listado
+    ("moodle/course:view", 1),
+    ("moodle/course:viewhiddencourses", 1),
+    ("moodle/course:viewparticipants", 1),
+    ("moodle/category:viewhiddencategories", 1),
+    ("moodle/category:manage", 1),
+    ("moodle/course:update", 1),
+    ("moodle/course:create", 1),
+
+    # Acceso a funciones core_course_get_courses y get_courses_by_field
+    ("moodle/course:viewdetails", 1),
+
+    # Usuarios
     ("moodle/user:create", 1),
     ("moodle/user:update", 1),
-    ("moodle/course:create", 1),
-    ("moodle/course:update", 1),
+
+    # Enrolamiento
     ("moodle/role:assign", 1),
     ("enrol/manual:manage", 1),
+    ("enrol/manual:enrol", 1),
+    ("enrol/manual:unenrol", 1),
 ]
+
 
 
 def connect_to_moodle_db():

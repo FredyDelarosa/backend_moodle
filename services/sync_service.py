@@ -49,8 +49,8 @@ class SyncService:
             values={"gid": grupo_id}
         )
 
-        shortname = f"P1_C{group['cuatrimestre_id']}_A{asign['id']}_G{group['grupo_id']}"
-        fullname = f"Grupo {group['grupo_nombre']} - {asign['nombre']}"
+        shortname = f"{asign['nombre']}_{group['grupo_nombre']}".replace(" ", "_").lower()
+        fullname = f"{asign['nombre']} - Grupo {group['grupo_nombre']}"
 
         summary = {"course": None, "teacher": None, "students": [], "errors": []}
 
@@ -58,20 +58,26 @@ class SyncService:
         async with sem:
             try:
                 resp = await self.moodle.get_course_by_shortname(shortname)
+                
                 if resp.get("courses"):
+                    # YA EXISTE → ACTUALIZAR
                     courseid = resp["courses"][0]["id"]
+                    await self.moodle.update_course(
+                        courseid=courseid,
+                        fullname=fullname,
+                        shortname=shortname
+                    )
                 else:
-                    if create_if_missing:
-                        created = await self.moodle.create_course(fullname, shortname)
-                        courseid = created[0]["id"]
-                    else:
-                        courseid = None
+                    # NO EXISTE → CREAR
+                    created = await self.moodle.create_course(fullname, shortname)
+                    courseid = created[0]["id"]
 
                 summary["course"] = {"shortname": shortname, "id": courseid}
 
             except Exception as e:
                 summary["errors"].append({"stage": "course", "error": str(e)})
                 return summary
+
 
         # ========= DOCENTE ==========
         teacher_id = None
