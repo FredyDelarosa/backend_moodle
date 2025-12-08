@@ -12,7 +12,14 @@ class Settings(BaseSettings):
     concurrency_limit: int = 5
     app_port: int = 8000
 
+    # CORS settings (can be configured via environment variables)
+    cors_allow_origins: list[str] = ["*"]
+    cors_allow_credentials: bool = True
+    cors_allow_methods: list[str] = ["*"]
+    cors_allow_headers: list[str] = ["*"]
+
     class Config:
         env_file = ".env"
+
 
 settings = Settings()
